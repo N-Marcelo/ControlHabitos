@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Gestión de Usuarios</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="p-4">
+<div class="container">
+  <h2 class="text-primary mb-4">Registrar Usuario</h2>
+
+  <div id="mensaje" class="alert d-none"></div>
+
+  <form id="formUsuario">
+    <input type="hidden" id="idUsuario">
+
+    <div class="mb-3">
+      <label for="nombre" class="form-label">Nombre</label>
+      <input type="text" class="form-control" id="nombre" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="correo" class="form-label">Correo Electrónico</label>
+      <input type="email" class="form-control" id="correo" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="contraseña" class="form-label">Contraseña</label>
+      <input type="password" class="form-control" id="contraseña" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="rol" class="form-label">Rol</label>
+      <select class="form-select" id="rol" required>
+        <option value="">Selecciona</option>
+        <option value="usuario">Usuario</option>
+        <option value="administrador">Administrador</option>
+      </select>
+    </div>
+
+    <button type="submit" class="btn btn-success">Registrar Usuario</button>
+    <button type="reset" class="btn btn-secondary ms-2" onclick="resetForm()">Limpiar</button>
+  </form>
+
+  <hr class="my-4">
+
+  <h3 class="text-secondary">Lista de Usuarios</h3>
+  <table class="table table-striped mt-3">
+    <thead>
+    <tr>
+      <th>ID</th>
+      <th>Nombre</th>
+      <th>Correo</th>
+      <th>Contraseña</th>
+      <th>Rol</th>
+      <th>Acciones</th>
+    </tr>
+    </thead>
+    <tbody id="tablaUsuarios"></tbody>
+  </table>
+</div>
+
+<script>
+  const form = document.getElementById("formUsuario");
+  const tabla = document.getElementById("tablaUsuarios");
+  const mensaje = document.getElementById("mensaje");
+
+  form.addEventListener("submit", async function (e) {
+    e.preventDefault();
+    const id = document.getElementById("idUsuario").value;
+
+    const usuario = {
+      nombre: document.getElementById("nombre").value,
+      correo: document.getElementById("correo").value,
+      contraseña: document.getElementById("contraseña").value,
+      rol: document.getElementById("rol").value
+    };
+
+    const url = id ? `/usuario/${id}` : '/usuario';
+    const metodo = id ? 'PUT' : 'POST';
+
+    const resp = await fetch(url, {
+      method: metodo,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(usuario)
+    });
+
+    if (resp.ok) {
+      mostrarMensaje(id ? "✅ Usuario actualizado" : "✅ Usuario registrado", "success");
+      form.reset();
+      document.getElementById("idUsuario").value = "";
+      listarUsuarios();
+    } else {
+      mostrarMensaje("❌ Error al guardar", "danger");
+    }
+  });
+
+  let listaUsuarios = [];
+  async function listarUsuarios() {
+    const resp = await fetch("/usuario");
+    listaUsuarios = await resp.json();
+
+    tabla.innerHTML = "";
+    listaUsuarios.forEach(u => {
+      tabla.innerHTML += `
+          <tr>
+            <td>${u.idUsuario}</td>
+            <td>${u.nombre}</td>
+            <td>${u.correo}</td>
+            <td>${u.contraseña}</td>
+            <td>${u.rol}</td>
+            <td>
+              <button class="btn btn-warning btn-sm" onclick='editar(${u.idUsuario})'>Editar</button>
+              <button class="btn btn-danger btn-sm ms-1" onclick='eliminar(${u.idUsuario})'>Eliminar</button>
+            </td>
+          </tr>
+        `;
+    });
+  }
+
+  function editar(id) {
+    document.querySelector("button[type=submit]").textContent = "Actualizar Usuario";
+    const u = listaUsuarios.find(u => u.idUsuario === id);
+    if (!u) return;
+
+    document.getElementById("idUsuario").value = u.idUsuario;
+    document.getElementById("nombre").value = u.nombre;
+    document.getElementById("correo").value = u.correo;
+    document.getElementById("contraseña").value = u.contraseña;
+    document.getElementById("rol").value = u.rol;
+  }
+
+  async function eliminar(id) {
+    if (confirm("¿Deseas eliminar este usuario?")) {
+      const resp = await fetch(`/usuario/${id}`, { method: "DELETE" });
+      if (resp.ok) {
+        mostrarMensaje("✅ Usuario eliminado", "success");
+        listarUsuarios();
+      } else {
+        mostrarMensaje("❌ Error al eliminar", "danger");
+      }
+    }
+  }
+
+  function mostrarMensaje(texto, tipo) {
+    mensaje.className = `alert alert-${tipo}`;
+    mensaje.textContent = texto;
+    mensaje.classList.remove("d-none");
+    setTimeout(() => mensaje.classList.add("d-none"), 3000);
+  }
+
+  function resetForm() {
+    document.getElementById("idUsuario").value = "";
+    document.querySelector("button[type=submit]").textContent = "Registrar Usuario";
+  }
+
+  listarUsuarios();
+</script>
+</body>
+</html>

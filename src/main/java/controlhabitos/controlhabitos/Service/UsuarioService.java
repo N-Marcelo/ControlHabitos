@@ -28,6 +28,7 @@ public class UsuarioService {
         usuario.setNombre(usuarioDetails.getNombre());
         usuario.setCorreo(usuarioDetails.getCorreo());
         usuario.setContraseña(usuarioDetails.getContraseña());
+        usuario.setRol(usuarioDetails.getRol());
 
         return usuarioRepository.save(usuario);
     }

@@ -32,7 +32,7 @@ public class HabitoService {
                 habito.getRecordatorio(),
                 habito.getActivo(),
                 habito.getFechaInicio(),
-                habito.getUsuario().getId_usuario(),
+                habito.getUsuario().getIdUsuario(),
                 // Convertir categorías a DTOs
                 habito.getCategorias().stream()
                         .map(categoria -> new CategoriaDTO(
@@ -53,9 +53,9 @@ public class HabitoService {
         habito.setFechaInicio(habitoDTO.getFechaInicio());
 
         // Recuperar el usuario
-        Usuario usuario = usuarioRepository.findById(habitoDTO.getIdUsuario())
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-        habito.setUsuario(usuario);
+            Usuario usuario = usuarioRepository.findById(habitoDTO.getIdUsuario())
+                    .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+            habito.setUsuario(usuario);
 
         if (habitoDTO.getCategorias() != null && !habitoDTO.getCategorias().isEmpty()) {
             List<CategoriaHabito> categorias = habitoDTO.getCategorias().stream()

@@ -15,7 +15,7 @@ public class Usuario {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id_usuario;
+    private Long idUsuario;
 
     @Column(nullable = false)
     private String nombre;
@@ -28,6 +28,9 @@ public class Usuario {
 
     @Column(nullable = false)
     private LocalDateTime fechaCreacion = LocalDateTime.now();
+
+    @Column(nullable = false)
+    private String rol;
 
 
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL)
