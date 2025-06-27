@@ -37,9 +37,15 @@ public class HabitoController {
     }
 
     @PostMapping
-    public ResponseEntity<HabitoDTO> guardarHabito(@RequestBody HabitoDTO habitoDTO) {
+    public ResponseEntity<HabitoDTO> guardarHabito(@RequestBody HabitoDTO habitoDTO, HttpSession session) {
+        Usuario usuario = (Usuario) session.getAttribute("usuarioLogueado");
+        if (usuario == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        habitoDTO.setIdUsuario(usuario.getIdUsuario()); // Asegúrate de que esto esté
         HabitoDTO creado = habitoService.guardarHabito(habitoDTO);
-        return new ResponseEntity<>(creado, HttpStatus.CREATED);
+        return ResponseEntity.status(HttpStatus.CREATED).body(creado);
     }
 
     @PutMapping("/{id}")

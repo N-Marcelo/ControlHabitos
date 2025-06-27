@@ -47,7 +47,6 @@
       <form id="formHabito">
         <input type="hidden" id="idHabito">
         <input type="hidden" id="activo" value="true">
-        <input type="hidden" id="idUsuario" value="1">
 
         <div class="mb-3">
           <label for="nombre" class="form-label">Nombre del Hábito</label>
@@ -126,7 +125,6 @@
         <tbody id="tablaHabitos"></tbody>
       </table>
     </div>
-
     <script>
       const form = document.getElementById("formHabito");
       const tabla = document.getElementById("tablaHabitos");
@@ -149,7 +147,6 @@
           frecuencia: document.getElementById("frecuencia").value,
           descripcion: document.getElementById("descripcion").value,
           activo: true,
-          idUsuario: 1,
           categorias: [
             {
               id: idCategoria,
@@ -179,7 +176,7 @@
 
       let listaHabitos = [];
       async function listarHabitos() {
-        const resp = await fetch("/habito");
+        const resp = await fetch(`/habito`);
         listaHabitos = await resp.json();
 
         tabla.innerHTML = "";
