@@ -32,6 +32,11 @@ public class Usuario {
     @Column(nullable = false)
     private String rol;
 
+    @Column(nullable = false)
+    private boolean verificado = false;
+
+    @Column(name = "token_verificacion", unique = true)
+    private String tokenVerificacion;
 
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL)
     @ToString.Exclude

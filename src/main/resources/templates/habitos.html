@@ -7,8 +7,41 @@
   </head>
   <body class="p-4">
     <div class="container">
-      <h2 class="text-primary mb-4">Registrar Hábito</h2>
-
+      <!-- Inicio de NavBar-->
+      <nav class="navbar navbar-expand-lg bg-body-tertiary">
+        <div class="container-fluid">
+          <a class="navbar-brand" href="/habitos">Control Habitos</a>
+          <button
+                  class="navbar-toggler"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#navbarNav"
+                  aria-controls="navbarNav"
+                  aria-expanded="false"
+                  aria-label="Toggle navigation"
+          >
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+              <li class="nav-item">
+                <a class="nav-link active" aria-current="page" href="/menu">Menú principal</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/historial">Historial</a>
+              </li>
+            </ul>
+            <div class="d-flex">
+              <form action="/logout" method="post">
+                <button type="submit" class="btn btn-danger btn-sm">
+                  Cerrar sesión
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+      <!-- Fin de NavBar -->
       <div id="mensaje" class="alert d-none"></div>
 
       <form id="formHabito">
@@ -161,10 +194,9 @@
               <td>${h.frecuencia || ''}</td>
               <td>${(h.categorias && h.categorias.length > 0) ? h.categorias[0].nombre : ''}</td>
               <td>${h.descripcion || ''}</td>
-              <td>
-                <button class="btn btn-warning btn-sm" onclick='editar(${h.id})'>Editar</button>
-                <button class="btn btn-danger btn-sm ms-1" onclick='eliminar(${h.id})'>Eliminar</button>
-              </td>
+                <td><button class="btn btn-warning btn-sm" onclick='editar(${h.id})'>Editar</button></td>
+                <td><button class="btn btn-danger btn-sm ms-1" onclick='deshabilitar(${h.id})'>Deshabilitar</button></td>
+                <td><button class="btn btn-info btn-sm ms-1" onclick='completar(${h.id})'>Completado</button></td>
             </tr>
           `;
         });
@@ -188,17 +220,31 @@
           }
       }
 
-      async function eliminar(id) {
-        if (confirm("¿Deseas eliminar este hábito?")) {
+      async function deshabilitar(id) {
+        if (confirm("¿Deseas deshabilitar este hábito?")) {
           const resp = await fetch(`/habito/${id}`, { method: "DELETE" });
           if (resp.ok) {
-            mostrarMensaje("✅ Hábito eliminado", "success");
+            mostrarMensaje("✅ Hábito deshabilitado", "success");
             listarHabitos();
           } else {
             mostrarMensaje("❌ Error al eliminar", "danger");
           }
         }
       }
+
+      function completar(id) {
+      if (confirm("¿Deseas completar el hábito?")) {
+        fetch(`/habito/${id}/completar`, { method: "POST" })
+          .then(resp => {
+            if (resp.ok) {
+              mostrarMensaje("✅ Hábito completado", "success");
+              window.location.href = "/historial"; // Redirigir al historial
+            } else {
+              mostrarMensaje("❌ Error al completar el hábito", "danger");
+            }
+          });
+      }
+    }
 
       function mostrarMensaje(texto, tipo) {
         mensaje.className = `alert alert-${tipo}`;

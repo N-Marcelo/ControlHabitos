@@ -1,13 +1,13 @@
 package controlhabitos.controlhabitos.Service;
 
 import controlhabitos.controlhabitos.Model.*;
-import controlhabitos.controlhabitos.Repository.CategoriaRepository;
-import controlhabitos.controlhabitos.Repository.HabitoRepository;
-import controlhabitos.controlhabitos.Repository.UsuarioRepository;
+import controlhabitos.controlhabitos.Repository.*;
 import controlhabitos.controlhabitos.dto.HabitoDTO;
 import controlhabitos.controlhabitos.dto.CategoriaDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -20,6 +20,8 @@ public class HabitoService {
     private UsuarioRepository usuarioRepository;
     @Autowired
     private CategoriaRepository categoriaRepository;
+    @Autowired
+    private AuditoriaHabitoRepository auditoriaHabitoRepository;
 
 
     private HabitoDTO convertToDto(Habito habito) {
@@ -71,11 +73,12 @@ public class HabitoService {
         return habito;
     }
 
-    public List<HabitoDTO> listarHabitos(){
-        return habitoRepository.findAll().stream()
+    public List<HabitoDTO> listarHabitos(Long idUsuario){
+        return habitoRepository.findByUsuario_IdUsuarioAndActivoTrue(idUsuario).stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
+
 
     public HabitoDTO buscarHabitoPorId(long id){
         return habitoRepository.findById(id)
@@ -107,12 +110,49 @@ public class HabitoService {
     }
 
 
+
     public String eliminarHabito(Long id) {
-        if (habitoRepository.existsById(id)) {
-            habitoRepository.deleteById(id);
-            return "Habito eliminado correctamente";
-        } else {
-            throw new RuntimeException("Habito no encontrado");
-        }
+        // Buscar el hábito por ID
+        Habito habito = habitoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Hábito no encontrado"));
+
+        // Asegurar que el usuario esté bien cargado (evita errores de null)
+        Usuario usuario = usuarioRepository.findById(habito.getUsuario().getIdUsuario()
+)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        habito.setUsuario(usuario); // asegurar que esté completamente cargado
+
+        // Deshabilitar el hábito en vez de eliminarlo
+        habito.setActivo(false);
+        habitoRepository.save(habito);
+
+        // Crear registro de auditoría
+        AuditoriaHabito auditoria = new AuditoriaHabito();
+        auditoria.setHabito(habito);
+        auditoria.setUsuario(usuario);
+        auditoria.setFechaAccion(java.time.LocalDateTime.now());
+        auditoria.setTipoAccion("deshabilitado");
+
+        auditoriaHabitoRepository.save(auditoria);
+
+        return "Hábito deshabilitado correctamente.";
     }
+    @Autowired
+    private HistorialHabitoRepository historialHabitoRepository;
+
+    public void completarHabito(Long idHabito, Long idUsuario) {
+        Habito habito = habitoRepository.findById(idHabito)
+                .orElseThrow(() -> new RuntimeException("Hábito no encontrado"));
+
+        HistorialHabito historial = new HistorialHabito();
+        historial.setIdHabito(idHabito);
+        historial.setIdUsuario(idUsuario);
+        historial.setFechaCompletado(LocalDateTime.now());
+
+        historialHabitoRepository.save(historial);
+    }
+    public List<HistorialHabito> obtenerHistorialPorUsuario(Long idUsuario) {
+        return historialHabitoRepository.findByIdUsuario(idUsuario);
+    }
+
 }

@@ -1,8 +1,10 @@
 package controlhabitos.controlhabitos.Controller;
 
 import controlhabitos.controlhabitos.Model.Habito;
+import controlhabitos.controlhabitos.Model.Usuario;
 import controlhabitos.controlhabitos.Service.HabitoService;
 import controlhabitos.controlhabitos.dto.HabitoDTO;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,8 +18,12 @@ public class HabitoController {
     private HabitoService habitoService;
 
     @GetMapping
-    public List<HabitoDTO> listarHabitos(){
-        return habitoService.listarHabitos();
+    public List<HabitoDTO> listarHabitos(HttpSession session) {
+        Usuario usuario = (Usuario) session.getAttribute("usuarioLogueado");
+        if (usuario == null) {
+            return List.of();
+        }
+        return habitoService.listarHabitos(usuario.getIdUsuario());
     }
 
     @GetMapping("/{id}")
@@ -52,4 +58,20 @@ public class HabitoController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
+    @PostMapping("/{id}/completar")
+    public ResponseEntity<?> completarHabito(@PathVariable Long id, HttpSession session) {
+        // Obtener usuario logueado desde la sesión
+        Usuario usuario = (Usuario) session.getAttribute("usuarioLogueado");
+        if (usuario == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No autenticado");
+        }
+
+        try {
+            habitoService.completarHabito(id, usuario.getIdUsuario()); // Este método lo defines en tu servicio
+            return ResponseEntity.ok("Hábito completado y registrado en historial");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
 }

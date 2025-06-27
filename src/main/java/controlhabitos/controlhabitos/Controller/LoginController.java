@@ -2,6 +2,7 @@ package controlhabitos.controlhabitos.Controller;
 
 import controlhabitos.controlhabitos.Model.Usuario;
 import controlhabitos.controlhabitos.Repository.UsuarioRepository;
+import controlhabitos.controlhabitos.Service.EmailService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -44,13 +45,45 @@ public class LoginController {
         usuario.setCorreo(correo);
         usuario.setContraseña(contrasena);
         usuario.setRol(rol);
+        usuario.setVerificado(false);
+
+        // GENERAR TOKEN
+        String token = java.util.UUID.randomUUID().toString();
+        usuario.setTokenVerificacion(token);
 
         usuarioRepository.save(usuario);
+        enviarCorreoVerificacion(usuario);
+
+        model.addAttribute("mensaje", "Revisa tu correo para verificar la cuenta.");
 
         return "redirect:/index";
     }
+    @Autowired
+    private EmailService emailService;
 
+    private void enviarCorreoVerificacion(Usuario usuario) {
+        emailService.enviarVerificacion(
+                usuario.getCorreo(),
+                usuario.getNombre(),
+                usuario.getTokenVerificacion()
+        );
+    }
+    //Verificación de correo
+    @GetMapping("/verificar")
+    public String verificarCuenta(@RequestParam("token") String token, Model model) {
+        Usuario usuario = usuarioRepository.findByTokenVerificacion(token);
 
+        if (usuario != null) {
+            usuario.setVerificado(true);
+            usuario.setTokenVerificacion(null); // elimina el token
+            usuarioRepository.save(usuario);
+            model.addAttribute("mensaje", "Cuenta verificada correctamente.");
+        } else {
+            model.addAttribute("error", "Token inválido o expirado.");
+        }
+
+        return "index"; // o una página de confirmación
+    }
     // Procesar login
     @PostMapping("/login")
     public String login(
@@ -61,7 +94,7 @@ public class LoginController {
 
         Usuario usuario = usuarioRepository.findByCorreoAndContraseña(correo, contrasena);
 
-        if (usuario != null) {
+        if (usuario != null && usuario.isVerificado()) {
             session.setAttribute("usuarioLogueado", usuario);
 
             if (usuario.getCorreo().equals("admin@gmail.com") && usuario.getContraseña().equals("admin")) {
@@ -69,9 +102,10 @@ public class LoginController {
             }
             return "redirect:/menu";
 
+        } else {
+            model.addAttribute("error", "Cuenta no verificada o credenciales incorrectas.");
+            return "index";
         }
-        model.addAttribute("error", "Usuario o contraseña incorrectos.");
-        return "index";
     }
 
     @GetMapping("/menu")
@@ -85,10 +119,13 @@ public class LoginController {
         model.addAttribute("nombreUsuario", usuario.getNombre());
         return "MenuPrincipal";
     }
-
-    @GetMapping("/logout")
+    @PostMapping("/logout")
     public String logout(HttpSession session) {
         session.invalidate();
         return "redirect:/login";
+    }
+    @GetMapping("/login")
+    public String mostrarLogin() {
+        return "index";
     }
 }
