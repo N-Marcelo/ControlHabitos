@@ -10,11 +10,11 @@ CREATE TABLE Usuario (
     id_usuario INT IDENTITY(1,1) PRIMARY KEY,
     nombre NVARCHAR(100) NOT NULL,
     correo NVARCHAR(100) NOT NULL UNIQUE,
-    contraseña NVARCHAR(255) NOT NULL,
+    contraseÃ±a NVARCHAR(255) NOT NULL,
 	rol NVARCHAR(20) CHECK (rol IN ('administrador', 'usuario')),
     fecha_creacion DATETIME DEFAULT GETDATE(),
 	verificado BIT DEFAULT 0 NOT NULL,
-	token_verificacion VARCHAR(255) UNIQUE
+	token_verificacion VARCHAR(255)
 );
 GO
 
