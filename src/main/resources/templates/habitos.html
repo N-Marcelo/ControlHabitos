@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Control de Hábitos</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <style>
+    body {
+      background: linear-gradient(135deg, #d6e4ff 0%, #f8f9fa 100%);
+      min-height: 100vh;
+    }
+    .card-container {
+      max-width: 800px;
+    }
+    .chart-container {
+      height: 300px;
+    }
+  </style>
+</head>
+<body class="p-4">
+<div class="container">
+  <!-- Inicio de NavBar-->
+  <nav class="navbar navbar-expand-lg navbar-light bg-white rounded-3 shadow-sm mb-4">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/habitos">Control Habitos</a>
+      <button
+              class="navbar-toggler"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#navbarNav"
+              aria-controls="navbarNav"
+              aria-expanded="false"
+              aria-label="Toggle navigation"
+      >
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item">
+            <a class="nav-link active" aria-current="page" href="/menu">Menú principal</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/historial">Historial</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/resumen-semanal">Resumen semanal</a>
+          </li>
+        </ul>
+        <div class="d-flex">
+          <button class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#habitoModal">
+            Nuevo Hábito
+          </button>
+          <form action="/logout" method="post">
+            <button type="submit" class="btn btn-danger btn-sm">
+              Cerrar sesión
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </nav>
+  <!-- Fin de NavBar -->
+  <div id="mensaje" class="alert d-none"></div>
+
+  <h3 class="text-secondary">Lista de Hábitos</h3>
+  <table class="table table-striped mt-3">
+    <thead>
+    <tr>
+      <th>ID</th>
+      <th>Nombre</th>
+      <th>Prioridad</th>
+      <th>Recordatorio</th>
+      <th>Fecha</th>
+      <th>Frecuencia</th>
+      <th>Categoria</th>
+      <th>Descripción</th>
+      <th>Acciones</th>
+    </tr>
+    </thead>
+    <tbody id="tablaHabitos"></tbody>
+  </table>
+</div>
+
+<!-- Modal para el formulario de hábitos -->
+<div class="modal fade" id="habitoModal" tabindex="-1" aria-labelledby="habitoModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="habitoModalLabel">Registrar Nuevo Hábito</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="formHabito">
+          <input type="hidden" id="idHabito">
+          <input type="hidden" id="activo" value="true">
+
+          <div class="mb-3">
+            <label for="nombre" class="form-label">Nombre del Hábito</label>
+            <input type="text" class="form-control" id="nombre" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="prioridad" class="form-label">Prioridad</label>
+            <select class="form-select" id="prioridad" required>
+              <option value="">Selecciona</option>
+              <option value="alta">Alta</option>
+              <option value="media">Media</option>
+              <option value="baja">Baja</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label for="recordatorio" class="form-label">Recordatorio</label>
+            <input type="text" class="form-control" id="recordatorio">
+          </div>
+
+          <div class="mb-3">
+            <label for="fechaInicio" class="form-label">Fecha de Inicio</label>
+            <input type="date" class="form-control" id="fechaInicio">
+          </div>
+
+          <div class="mb-3">
+            <label for="frecuencia" class="form-label">Frecuencia</label>
+            <select class="form-select" id="frecuencia">
+              <option value="">Selecciona</option>
+              <option value="diaria">Diaria</option>
+              <option value="semanal">Semanal</option>
+              <option value="mensual">Mensual</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label for="categoria" class="form-label">Categoria</label>
+            <select class="form-select" id="categoria">
+              <option value="">Selecciona</option>
+              <option value="1">Salud y Bienestar</option>
+              <option value="2">Productividad</option>
+              <option value="3">Desarrollo Personal</option>
+              <option value="4">Finanzas</option>
+              <option value="5">Relaciones</option>
+              <option value="6">Ocio y Creatividad</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label for="descripcion" class="form-label">Descripción</label>
+            <textarea class="form-control" id="descripcion"></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="submit" form="formHabito" class="btn btn-success">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para completar hábito -->
+<div class="modal fade" id="completarHabitoModal" tabindex="-1" aria-labelledby="completarHabitoLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="formCompletarHabito">
+        <div class="modal-header">
+          <h5 class="modal-title" id="completarHabitoLabel">Completar Hábito</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="habitoId" />
+
+          <div class="mb-3">
+            <label for="fechaCompletar" class="form-label">Fecha</label>
+            <input type="date" class="form-control" id="fechaCompletar">
+          </div>
+
+          <div class="mb-3">
+            <label for="notaCompletar" class="form-label">Nota (opcional)</label>
+            <textarea class="form-control" id="notaCompletar" rows="3"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Completar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para confirmar deshabilitar hábito -->
+<div class="modal fade" id="deshabilitarHabitoModal" tabindex="-1" aria-labelledby="deshabilitarHabitoLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deshabilitarHabitoLabel">Deshabilitar Hábito</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        ¿Estás seguro que deseas deshabilitar este hábito?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-danger" id="confirmarDeshabilitarBtn">Deshabilitar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const form = document.getElementById("formHabito");
+  const tabla = document.getElementById("tablaHabitos");
+  const mensaje = document.getElementById("mensaje");
+  const habitoModal = new bootstrap.Modal(document.getElementById('habitoModal'));
+
+  // Variables para modales
+  let modalCompletar;
+  let modalDeshabilitar;
+  let habitoADeshabilitar = null;
+
+  document.addEventListener('DOMContentLoaded', function () {
+    // Inicializar modales
+    modalCompletar = new bootstrap.Modal(document.getElementById('completarHabitoModal'));
+    modalDeshabilitar = new bootstrap.Modal(document.getElementById('deshabilitarHabitoModal'));
+
+    // Configurar botón de confirmación para deshabilitar
+    document.getElementById('confirmarDeshabilitarBtn').addEventListener('click', async function() {
+      if (habitoADeshabilitar) {
+        const resp = await fetch(`/habito/${habitoADeshabilitar}`, { method: "DELETE" });
+        if (resp.ok) {
+          mostrarMensaje("✅ Hábito deshabilitado", "success");
+          listarHabitos();
+        } else {
+          mostrarMensaje("❌ Error al deshabilitar", "danger");
+        }
+        modalDeshabilitar.hide();
+        habitoADeshabilitar = null;
+      }
+    });
+
+    // Escuchar el envío del formulario de completar
+    document.getElementById('formCompletarHabito').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const id = document.getElementById('habitoId').value;
+      const fecha = document.getElementById('fechaCompletar').value;
+      const nota = document.getElementById('notaCompletar').value;
+
+      fetch(`/habito/${id}/completar?fecha=${fecha || ''}&nota=${encodeURIComponent(nota || '')}`, {
+        method: "POST"
+      }).then(resp => {
+        if (resp.ok) {
+          modalCompletar.hide();
+          mostrarMensaje("✅ Hábito completado", "success");
+          window.location.href = "/historial";
+        } else {
+          mostrarMensaje("❌ Error al completar el hábito", "danger");
+        }
+      });
+    });
+  });
+
+  form.addEventListener("submit", async function (e) {
+    e.preventDefault();
+    const id = document.getElementById("idHabito").value;
+
+    //Obtener Id y nombre seleccionados
+    const selectCategoria = document.getElementById("categoria");
+    const idCategoria = parseInt(selectCategoria.value);
+    const nombreCategoria = selectCategoria.options[selectCategoria.selectedIndex].text;
+
+    const habito = {
+      nombre: document.getElementById("nombre").value,
+      prioridad: document.getElementById("prioridad").value,
+      recordatorio: document.getElementById("recordatorio").value,
+      fechaInicio: document.getElementById("fechaInicio").value,
+      frecuencia: document.getElementById("frecuencia").value,
+      descripcion: document.getElementById("descripcion").value,
+      activo: true,
+      categorias: [
+        {
+          id: idCategoria,
+          nombre: nombreCategoria
+        }
+      ]
+    };
+
+    const url = id ? `/habito/${id}` : '/habito';
+    const metodo = id ? 'PUT' : 'POST';
+
+    const resp = await fetch(url, {
+      method: metodo,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(habito)
+    });
+
+    if (resp.ok) {
+      mostrarMensaje(id ? "✅ Hábito actualizado" : "✅ Hábito registrado", "success");
+      form.reset();
+      document.getElementById("idHabito").value = "";
+      habitoModal.hide();
+      listarHabitos();
+    } else {
+      mostrarMensaje("❌ Error al guardar", "danger");
+    }
+  });
+
+  let listaHabitos = [];
+  async function listarHabitos() {
+    const resp = await fetch(`/habito`);
+    listaHabitos = await resp.json();
+
+    tabla.innerHTML = "";
+    listaHabitos.forEach(h => {
+      tabla.innerHTML += `
+        <tr>
+          <td>${h.id}</td>
+          <td>${h.nombre}</td>
+          <td>${h.prioridad}</td>
+          <td>${h.recordatorio || ''}</td>
+          <td>${h.fechaInicio || ''}</td>
+          <td>${h.frecuencia || ''}</td>
+          <td>${(h.categorias && h.categorias.length > 0) ? h.categorias[0].nombre : ''}</td>
+          <td>${h.descripcion || ''}</td>
+            <td>
+            <button class="btn btn-warning btn-sm" onclick='editar(${h.id})'>Editar</button>
+            <button class="btn btn-danger btn-sm ms-1" onclick='confirmarDeshabilitar(${h.id})'>Deshabilitar</button>
+            <button class="btn btn-info btn-sm ms-1" onclick='completar(${h.id})'>Completado</button>
+            </td>
+        </tr>
+      `;
+    });
+  }
+
+  function editar(id) {
+    const h = listaHabitos.find(h => h.id === id);
+    if (!h) return;
+
+    document.getElementById("habitoModalLabel").textContent = "Editar Hábito";
+    document.getElementById("idHabito").value = h.id;
+    document.getElementById("nombre").value = h.nombre;
+    document.getElementById("prioridad").value = h.prioridad;
+    document.getElementById("recordatorio").value = h.recordatorio || '';
+    document.getElementById("fechaInicio").value = h.fechaInicio || '';
+    document.getElementById("frecuencia").value = h.frecuencia || '';
+    document.getElementById("descripcion").value = h.descripcion || '';
+
+    if (h.categorias && h.categorias.length > 0) {
+      document.getElementById("categoria").value = h.categorias[0].id;
+    }
+
+    habitoModal.show();
+  }
+
+  function confirmarDeshabilitar(id) {
+    habitoADeshabilitar = id;
+    modalDeshabilitar.show();
+  }
+
+  function completar(id) {
+    console.log("🟢 Modal para completar hábito ID:", id);
+    document.getElementById('habitoId').value = id;
+    document.getElementById('fechaCompletar').value = '';
+    document.getElementById('notaCompletar').value = '';
+    modalCompletar.show();
+  }
+
+  function mostrarMensaje(texto, tipo) {
+    mensaje.className = `alert alert-${tipo}`;
+    mensaje.textContent = texto;
+    mensaje.classList.remove("d-none");
+    setTimeout(() => mensaje.classList.add("d-none"), 3000);
+  }
+
+  // Resetear formulario cuando se cierra el modal
+  document.getElementById('habitoModal').addEventListener('hidden.bs.modal', function () {
+    form.reset();
+    document.getElementById("idHabito").value = "";
+    document.getElementById("habitoModalLabel").textContent = "Registrar Nuevo Hábito";
+  });
+
+  listarHabitos();
+</script>
+</body>
+</html>

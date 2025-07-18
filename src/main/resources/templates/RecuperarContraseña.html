@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Control de Hábitos - Inicio</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg">
+  <div class="container">
+    <a class="navbar-brand" href="/index">Control de Hábitos</a>
+    <div class="ms-auto">
+      <a class="nav-link" href="/index">Volver al inicio</a>
+    </div>
+  </div>
+</nav>
+<div class="container d-flex justify-content-center align-items-center min-vh-100">
+  <form class="register-container col-12 col-sm-10 col-md-6 col-lg-4" method="post" action="/actualizarContraseña" th:object="${usuario}">
+    <input type="hidden" name="token" th:value="${token}" />
+    <h2 class="mb-4 text-center">Recupera tu contraseña</h2>
+
+    <!-- Mensaje de error si el correo ya existe -->
+    <div th:if="${error}" class="alert alert-danger text-center" role="alert">
+      <span th:text="${error}"></span>
+    </div>
+    <div th:if="${mensaje}" class="alert alert-success text-center">
+      <span th:text="${mensaje}"></span>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Correo electrónico</label>
+      <p class="form-control-static" th:text="${correo}"></p>
+    </div>
+    <div class="mb-3">
+      <label for="contrasena" class="form-label">Contraseña</label>
+      <input type="password" class="form-control" id="contrasena" name="contrasena" required maxlength="100">
+    </div>
+    <button type="submit" class="btn btn-primary w-100">Actualizar</button>
+    <div class="mt-3 text-center">
+      <a href="/index" class="link-primary">¿Ya tienes una cuenta? Inicia sesión</a>
+    </div>
+  </form>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
